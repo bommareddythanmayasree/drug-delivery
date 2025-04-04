@@ -1,9 +1,15 @@
 from flask import Flask, request, jsonify
+import os
 import joblib
-import numpy as np
 
-app = Flask(__name__)
-model = joblib.load("backend/drug_delivery.joblib")
+# Get the absolute path of the current script
+current_directory = os.path.dirname(os.path.abspath(__file__))
+
+# Construct the correct path to the model file
+model_path = os.path.join(current_directory, "drug_delivery.joblib")
+
+# Load the model
+model = joblib.load(model_path)
 
 @app.route("/")
 def home():
