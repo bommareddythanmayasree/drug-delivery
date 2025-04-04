@@ -7,14 +7,15 @@ current_directory = os.path.dirname(os.path.abspath(__file__))
 
 # Construct the correct path to the model file
 model_path = os.path.join(current_directory, "drug_discovery_model.joblib")
+git commit -m "Added trained drug discovery model"
 
 # Load the model
 model = joblib.load(model_path)
 
-@app.route("/")
 def home():
-    return "Drug Delivery Model API is live."
+    return render_template("index.html")  # 👈 Now Flask will serve your HTML page
 
+# Prediction API
 @app.route("/predict", methods=["POST"])
 def predict():
     data = request.get_json()
