@@ -3,7 +3,7 @@ import joblib
 import numpy as np
 
 app = Flask(__name__)
-model = joblib.load("drug_delivery.joblib")
+model = joblib.load("backend/drug_delivery.joblib")
 
 @app.route("/")
 def home():
