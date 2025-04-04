@@ -6,7 +6,7 @@ import joblib
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
 # Construct the correct path to the model file
-model_path = os.path.join(current_directory, "drug_delivery.joblib")
+model_path = os.path.join(current_directory, "drug_discovery_model.joblib")
 
 # Load the model
 model = joblib.load(model_path)
