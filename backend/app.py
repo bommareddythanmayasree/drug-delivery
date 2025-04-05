@@ -2,11 +2,14 @@ from flask import Flask, request, jsonify, render_template
 import joblib
 import pandas as pd
 import random
+import os
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
 # Load trained model (replace with your actual model file)
-model = joblib.load("model.joblib")
+
+model_path = os.getenv("MODEL_PATH", "drug_discovery_model.joblib")
+model = joblib.load(model_path)
 
 # Mock dictionary for molecule generation (using example SMILES strings)
 MOCK_MOLECULES = {
