@@ -39,12 +39,16 @@ def generate_molecule():
     data = request.get_json()
     disease = data.get("disease_target", "").lower()
 
-    smiles = MOCK_MOLECULES.get(disease)
-    if not smiles:
-        return jsonify({"error": "No molecule found for this disease."}), 400
+    if not disease:
+        return jsonify({"error": "No disease target provided."}), 400
 
-    return jsonify({"molecule": smiles})
-
+    try:
+        df = pd.DataFrame([{"disease": disease}])
+        predicted_smiles = model.predict(df)[0]
+        return jsonify({"molecule": predicted_smiles})
+    except Exception as e:
+        return jsonify({"error": f"Prediction failed: {str(e)}"}), 500
+        
 @app.route("/analyze_molecule", methods=["POST"])
 def analyze_molecule():
     data = request.get_json()
