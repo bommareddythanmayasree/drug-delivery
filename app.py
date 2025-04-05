@@ -2,12 +2,17 @@ from flask import Flask, request, jsonify
 import os
 import joblib
 
+import numpy as np  # Required for array handling
+
+# Initialize Flask app
+app = Flask(__name__)
+
+
 # Get the absolute path of the current script
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
 # Construct the correct path to the model file
 model_path = os.path.join(current_directory, "drug_discovery_model.joblib")
-git commit -m "Added trained drug discovery model"
 
 # Load the model
 model = joblib.load(model_path)
