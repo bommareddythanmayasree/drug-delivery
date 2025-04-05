@@ -7,17 +7,16 @@ import traceback
 
 app = Flask(__name__)
 
-# Load ML model
-current_directory = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(current_directory, "drug_discovery_model.joblib")
-
+# Load the ML model
+model = None
 try:
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(current_directory, "drug_discovery_model.joblib")
     model = joblib.load(model_path)
 except Exception as e:
-    print(f"Error loading model: {e}")
-    model = None
+    print(f"[ERROR] Failed to load model: {e}")
 
-# Dummy molecule generator (replace with actual logic if available)
+# Dummy Molecule Generator
 def generate_molecule(disease_target):
     smiles = f"SMILES_{disease_target}"
     features_df = pd.DataFrame([{
@@ -27,21 +26,23 @@ def generate_molecule(disease_target):
     efficacy = 0.87
     return smiles, features_df, efficacy
 
+
 @app.route("/")
 def home():
     return render_template("index.html")
+
 
 @app.route("/generate_molecule", methods=["POST"])
 def generate_molecule_api():
     try:
         data = request.get_json()
-        disease_target = data.get("disease", "Cancer")  # fallback to 'Cancer' if missing
+        disease_target = data.get("disease", "Cancer")
 
-        generated_smiles, generated_features_df, efficacy_score = generate_molecule(disease_target)
-        features_dict = generated_features_df.iloc[0].to_dict()
+        smiles, features_df, efficacy_score = generate_molecule(disease_target)
+        features_dict = features_df.iloc[0].to_dict()
 
         return jsonify({
-            "smiles": generated_smiles,
+            "smiles": smiles,
             "features": features_dict,
             "efficacy_score": efficacy_score
         })
@@ -49,6 +50,7 @@ def generate_molecule_api():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/analyze_molecule", methods=["POST"])
 def analyze_molecule():
@@ -58,11 +60,9 @@ def analyze_molecule():
 
         if not molecule:
             return jsonify({"error": "Molecule SMILES is required"}), 400
-
         if model is None:
             return jsonify({"error": "Model not loaded"}), 500
 
-        # Use a DataFrame with named columns
         features_df = pd.DataFrame([{"length": len(molecule)}])
         prediction = model.predict(features_df).tolist()
 
@@ -71,6 +71,7 @@ def analyze_molecule():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Prediction failed: {str(e)}"}), 500
+
 
 @app.route("/optimize_molecule", methods=["POST"])
 def optimize_molecule():
@@ -81,13 +82,13 @@ def optimize_molecule():
         if not molecule:
             return jsonify({"error": "Molecule is required"}), 400
 
-        # Dummy optimization logic – reverse the molecule string
-        optimized = molecule[::-1]
+        optimized = molecule[::-1]  # Dummy logic: reverse the SMILES string
         return jsonify({"optimized": optimized})
 
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/generate_report", methods=["POST"])
 def generate_report():
@@ -105,5 +106,7 @@ def generate_report():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
+
+# Do not use Flask dev server in production; gunicorn is used instead.
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
