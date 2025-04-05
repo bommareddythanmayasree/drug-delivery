@@ -1,4 +1,4 @@
-v# Use Miniconda base image for easier RDKit installation
+# Use Miniconda base image for easier RDKit installation
 FROM continuumio/miniconda3
 
 # Set working directory
