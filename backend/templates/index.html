@@ -17,20 +17,20 @@
         <h1>🚀 DrugXcelerate - AI-Powered Drug Discovery</h1>
 
         <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab-btn active" onclick="showTab('generate')">
-                <i class="fas fa-dna"></i> Generate Molecule
-            </button>
-            <button class="tab-btn" onclick="showTab('analyze')">
-                <i class="fas fa-flask"></i> Molecular Analysis & Efficacy Prediction
-            </button>
-            <button class="tab-btn" onclick="showTab('optimize')">
-                <i class="fas fa-microscope"></i> Optimization & Validation
-            </button>
-            <button class="tab-btn" onclick="showTab('report')">
-                <i class="fas fa-file-alt"></i> Generate Report
-            </button>
-        </div>
+<div class="tabs">
+    <button class="tab-btn active" data-tab="generate">
+        <i class="fas fa-dna"></i> Generate Molecule
+    </button>
+    <button class="tab-btn" data-tab="analyze">
+        <i class="fas fa-flask"></i> Molecular Analysis & Efficacy Prediction
+    </button>
+    <button class="tab-btn" data-tab="optimize">
+        <i class="fas fa-microscope"></i> Optimization & Validation
+    </button>
+    <button class="tab-btn" data-tab="report">
+        <i class="fas fa-file-alt"></i> Generate Report
+    </button>
+</div>
 
         <!-- Tab: Generate -->
         <div id="generate" class="tab-content" style="display: block;">
