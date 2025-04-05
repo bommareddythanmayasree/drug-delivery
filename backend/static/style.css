@@ -1,44 +1,87 @@
 body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(to right, #1e3c72, #2a5298);
-    color: white;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to right, #007bff, #0056b3);
     text-align: center;
-    padding: 20px;
+    color: white;
 }
 
-.tabs button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    margin: 10px;
-    cursor: pointer;
+.container {
+    max-width: 700px;
+    margin: 50px auto;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+    color: #333;
+}
+
+h1 {
+    font-size: 26px;
+}
+
+.tabs {
+    display: flex;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px;
     border-radius: 5px;
 }
 
-.tabs button:hover {
-    background-color: #0056b3;
+.tab-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 14px;
+    padding: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.tab-btn:hover, .tab-btn.active {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 5px;
 }
 
 .tab-content {
+    display: none;
     margin-top: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.tab-content h2 {
+    color: #007bff;
 }
 
 input {
-    padding: 10px;
     width: 80%;
+    padding: 10px;
     margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    text-align: center;
 }
 
 button {
-    padding: 10px;
-    background-color: #28a745;
+    background: #28a745;
     color: white;
     border: none;
-    cursor: pointer;
+    padding: 10px 20px;
     border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
 }
 
 button:hover {
-    background-color: #218838;
+    background: #218838;
+}
+
+p {
+    font-size: 18px;
+    margin-top: 10px;
 }
