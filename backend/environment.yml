@@ -1,0 +1,12 @@
+name: myenv
+channels:
+  - rdkit
+  - conda-forge
+dependencies:
+  - python=3.11
+  - rdkit
+  - pip
+  - pip:
+      - flask
+      - gunicorn
+      - joblib
