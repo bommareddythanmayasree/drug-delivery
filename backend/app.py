@@ -1,112 +1,57 @@
-from flask import Flask, request, jsonify, render_template
-import os
+from flask import Flask, render_template, request, jsonify
+from rdkit import Chem
+from rdkit.Chem import Descriptors
 import joblib
-import numpy as np
 import pandas as pd
-import traceback
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates", static_folder="static")
 
-# Load the ML model
-model = None
-try:
-    current_directory = os.path.dirname(os.path.abspath(__file__))
-    model_path = os.path.join(current_directory, "drug_discovery_model.joblib")
-    model = joblib.load(model_path)
-except Exception as e:
-    print(f"[ERROR] Failed to load model: {e}")
+# Load the trained ML model
+model = joblib.load("model.joblib")
 
-# Dummy Molecule Generator
-def generate_molecule(disease_target):
-    smiles = f"SMILES_{disease_target}"
-    features_df = pd.DataFrame([{
-        "length": len(smiles),
-        "dummy_feature": 1.0
-    }])
-    efficacy = 0.87
-    return smiles, features_df, efficacy
-
+def get_molecular_features(smiles):
+    mol = Chem.MolFromSmiles(smiles)
+    if not mol:
+        return None
+    return {
+        "Molecular_Weight": Descriptors.MolWt(mol),
+        "LogP": Descriptors.MolLogP(mol),
+        "H_Bond_Donors": Descriptors.NumHDonors(mol),
+        "H_Bond_Acceptors": Descriptors.NumHAcceptors(mol),
+        "TPSA": Descriptors.TPSA(mol),
+    }
 
 @app.route("/")
-def home():
+def index():
     return render_template("index.html")
 
-
 @app.route("/generate_molecule", methods=["POST"])
-def generate_molecule_api():
-    try:
-        data = request.get_json()
-        disease_target = data.get("disease", "Cancer")
+def generate_molecule():
+    data = request.get_json()
+    disease_name = data.get("disease", "").lower()
 
-        smiles, features_df, efficacy_score = generate_molecule(disease_target)
-        features_dict = features_df.iloc[0].to_dict()
+    # Example SMILES mapping (mock logic)
+    mock_molecules = {
+        "cancer": "CC(=O)OC1=CC=CC=C1C(=O)O",      # Aspirin
+        "diabetes": "CN1C=NC2=C1C(=O)N(C(=O)N2)C",  # Metformin
+        "fever": "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",   # Ibuprofen
+    }
 
-        return jsonify({
-            "smiles": smiles,
-            "features": features_dict,
-            "efficacy_score": efficacy_score
-        })
+    smiles = mock_molecules.get(disease_name, "CCO")  # Default: Ethanol
+    return jsonify({"molecule": smiles})
 
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+@app.route("/predict_efficacy", methods=["POST"])
+def predict_efficacy():
+    data = request.get_json()
+    smiles = data.get("smiles")
+    features = get_molecular_features(smiles)
 
+    if features is None:
+        return jsonify({"error": "Invalid SMILES"}), 400
 
-@app.route("/analyze_molecule", methods=["POST"])
-def analyze_molecule():
-    try:
-        data = request.get_json()
-        molecule = data.get("molecule", "").strip()
+    features_df = pd.DataFrame([features])
+    prediction = model.predict(features_df)[0]
+    return jsonify({"efficacy": round(prediction, 2)})
 
-        if not molecule:
-            return jsonify({"error": "Molecule SMILES is required"}), 400
-        if model is None:
-            return jsonify({"error": "Model not loaded"}), 500
-
-        features_df = pd.DataFrame([{"length": len(molecule)}])
-        prediction = model.predict(features_df).tolist()
-
-        return jsonify({"likelihood": prediction[0]})
-
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": f"Prediction failed: {str(e)}"}), 500
-
-
-@app.route("/optimize_molecule", methods=["POST"])
-def optimize_molecule():
-    try:
-        data = request.get_json()
-        molecule = data.get("molecule", "").strip()
-
-        if not molecule:
-            return jsonify({"error": "Molecule is required"}), 400
-
-        optimized = molecule[::-1]  # Dummy logic: reverse the SMILES string
-        return jsonify({"optimized": optimized})
-
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/generate_report", methods=["POST"])
-def generate_report():
-    try:
-        data = request.get_json()
-        molecule = data.get("molecule", "").strip()
-
-        if not molecule:
-            return jsonify({"error": "Molecule is required"}), 400
-
-        report = f"Report for Molecule:\n- SMILES: {molecule}\n- Length: {len(molecule)}"
-        return jsonify({"report": report})
-
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
-
-
-# Do not use Flask dev server in production; gunicorn is used instead.
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(debug=True)
