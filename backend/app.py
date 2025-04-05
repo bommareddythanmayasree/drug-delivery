@@ -8,7 +8,7 @@ from rdkit.Chem import Descriptors
 app = Flask(__name__)
 
 # ✅ Load AI Model with Error Handling
-model_path = os.path.join(os.getcwd(), "model", "drug_discovery_model.joblib")
+model_path = os.path.join(os.getcwd(), "drug_discovery_model.joblib")
 
 if not os.path.exists(model_path):
     raise FileNotFoundError(f"Model file not found at {model_path}. Ensure the model exists in the 'model/' folder.")
