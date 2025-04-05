@@ -1,91 +1,135 @@
 from flask import Flask, request, jsonify, render_template
 import joblib
-import pandas as pd
-import random
+import numpy as np
 import os
+from rdkit import Chem
+from rdkit.Chem import Descriptors
 
-app = Flask(__name__, template_folder="templates", static_folder="static")
+app = Flask(__name__)
 
-# Load trained model (replace with your actual model file)
+# ✅ Load AI Model with Error Handling
+model_path = os.path.join(os.getcwd(), "model", "drug_discovery_model.joblib")
 
-model_path = os.getenv("MODEL_PATH", "drug_discovery_model.joblib")
+if not os.path.exists(model_path):
+    raise FileNotFoundError(f"Model file not found at {model_path}. Ensure the model exists in the 'model/' folder.")
+
 model = joblib.load(model_path)
+print("✅ Model loaded successfully!")
 
-# Mock dictionary for molecule generation (using example SMILES strings)
-MOCK_MOLECULES = {
-    "cancer": "CC(=O)OC1=CC=CC=C1C(=O)O",      # Aspirin (just as a placeholder)
-    "diabetes": "CN1C=NC2=C1C(=O)N(C(=O)N2)C",  # Metformin
-    "fever": "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",   # Ibuprofen
-}
+# ✅ Function to analyze a molecule
+def analyze_molecule(smiles):
+    if not smiles:
+        return {"error": "No SMILES notation provided."}
+    
+    mol = Chem.MolFromSmiles(smiles)
+    if not mol:
+        return {"error": "Invalid SMILES notation."}
 
-# Mock feature extraction (returns random but reasonable dummy values)
-def extract_features(smiles):
-    if not smiles or not isinstance(smiles, str):
-        return None
+    molwt = Descriptors.MolWt(mol)
+    logp = Descriptors.MolLogP(mol)
+    tpsa = Descriptors.TPSA(mol)
+    h_donors = Descriptors.NumHDonors(mol)
+    h_acceptors = Descriptors.NumHAcceptors(mol)
+
+    features = np.array([[molwt, tpsa, logp, h_donors, h_acceptors]])
+    
+    try:
+        efficacy_pred = model.predict(features)[0]
+    except Exception as e:
+        return {"error": f"Model prediction failed: {str(e)}"}
+
     return {
-        "Molecular_Weight": round(random.uniform(150, 500), 2),
-        "LogP": round(random.uniform(-2, 5), 2),
-        "H_Bond_Donors": random.randint(0, 5),
-        "H_Bond_Acceptors": random.randint(0, 10),
-        "TPSA": round(random.uniform(20, 120), 2)
+        "Molecular Weight": molwt,
+        "TPSA": tpsa,
+        "LogP": logp,
+        "H Bond Donors": h_donors,
+        "H Bond Acceptors": h_acceptors,
+        "Predicted Efficacy Score": efficacy_pred
     }
 
+# ✅ Home Route
 @app.route("/")
-def index():
+def home():
     return render_template("index.html")
 
+# ✅ Generate Molecule (Placeholder for a real generator)
 @app.route("/generate_molecule", methods=["POST"])
 def generate_molecule():
     data = request.get_json()
-    disease = data.get("disease_target", "").lower()
+    disease_target = data.get("disease_target", "default_disease")
 
-    if not disease:
-        return jsonify({"error": "No disease target provided."}), 400
+    # Generate a simple carbon chain molecule (Placeholder for real AI molecule generation)
+    mol = Chem.RWMol()
+    for _ in range(10):
+        mol.AddAtom(Chem.Atom("C"))
+    smiles = Chem.MolToSmiles(mol)
+
+    return jsonify({"smiles": smiles, "message": f"Generated molecule for {disease_target}."})
+
+# ✅ Analyze Molecular Properties
+@app.route("/analyze", methods=["POST"])
+def analyze():
+    data = request.get_json()
+    smiles = data.get("smiles", "")
+
+    result = analyze_molecule(smiles)
+    return jsonify(result)
+
+# ✅ Optimize Molecule Properties
+@app.route("/optimize", methods=["POST"])
+def optimize():
+    data = request.get_json()
+    smiles = data.get("smiles", "")
+
+    if not smiles:
+        return jsonify({"error": "No SMILES provided."})
+
+    mol = Chem.MolFromSmiles(smiles)
+    if not mol:
+        return jsonify({"error": "Invalid molecule."})
+
+    # Example Optimization (Modify this logic)
+    molwt = Descriptors.MolWt(mol) * 1.02  # Example change
+    logp = Descriptors.MolLogP(mol) * 1.1  # Example change
 
     try:
-        df = pd.DataFrame([{"disease": disease}])
-        predicted_smiles = model.predict(df)[0]
-        return jsonify({"molecule": predicted_smiles})
+        efficacy_pred = model.predict([[molwt, 50, logp, 1, 1]])[0]
     except Exception as e:
-        return jsonify({"error": f"Prediction failed: {str(e)}"}), 500
-        
-@app.route("/analyze_molecule", methods=["POST"])
-def analyze_molecule():
+        return jsonify({"error": f"Optimization failed: {str(e)}"})
+
+    return jsonify({
+        "optimized_smiles": smiles,
+        "optimized_eff": efficacy_pred,
+        "message": "Optimization completed successfully."
+    })
+
+# ✅ Generate Report
+@app.route("/report", methods=["POST"])
+def report():
     data = request.get_json()
-    smiles = data.get("molecule")
-    features = extract_features(smiles)
+    smiles = data.get("smiles", "")
 
-    if features is None:
-        return jsonify({"error": "Invalid SMILES input."}), 400
+    if not smiles:
+        return jsonify({"error": "No SMILES provided."})
 
-    df = pd.DataFrame([features])
-    prediction = model.predict(df)[0]  # Binary prediction (e.g., 1 for likely drug)
-    return jsonify({"likelihood": "Likely Drug" if prediction else "Unlikely Drug"})
+    result = analyze_molecule(smiles)
 
-@app.route("/optimize_molecule", methods=["POST"])
-def optimize_molecule():
-    data = request.get_json()
-    smiles = data.get("molecule")
+    if "error" in result:
+        return jsonify({"error": result["error"]})
 
-    if not smiles or not isinstance(smiles, str):
-        return jsonify({"error": "Invalid molecule."}), 400
+    report_text = f"""
+    📜 **Drug Report**
+    - **SMILES**: {smiles}
+    - **Molecular Weight**: {result["Molecular Weight"]}
+    - **TPSA**: {result["TPSA"]}
+    - **LogP**: {result["LogP"]}
+    - **H Bond Donors**: {result["H Bond Donors"]}
+    - **H Bond Acceptors**: {result["H Bond Acceptors"]}
+    - **Efficacy Score**: {result["Predicted Efficacy Score"]}
+    """
 
-    # Mock "optimization": reverse the SMILES string just for demonstration
-    optimized_smiles = smiles[::-1]
-    return jsonify({"optimized": optimized_smiles})
+    return jsonify({"report": report_text})
 
-@app.route("/generate_report", methods=["POST"])
-def generate_report():
-    data = request.get_json()
-    smiles = data.get("molecule")
-    features = extract_features(smiles)
-
-    if features is None:
-        return jsonify({"error": "Invalid molecule."}), 400
-
-    # Generate a simple report as string
-    report = "\n".join([f"{k}: {v}" for k, v in features.items()])
-    return jsonify({"report": report})
-
+# ✅ Run Flask App
 if __name__ == "__main__":
     app.run(debug=True)
