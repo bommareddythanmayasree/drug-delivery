@@ -67,7 +67,7 @@ def generate_molecule():
     return jsonify({"smiles": smiles, "message": f"Generated molecule for {disease_target}."})
 
 # ✅ Analyze Molecular Properties
-@app.route("/analyze", methods=["POST"])
+@app.route("/analyze_molecule", methods=["POST"])
 def analyze():
     data = request.get_json()
     smiles = data.get("smiles", "")
@@ -76,7 +76,7 @@ def analyze():
     return jsonify(result)
 
 # ✅ Optimize Molecule Properties
-@app.route("/optimize", methods=["POST"])
+@app.route("/optimize_molecule", methods=["POST"])
 def optimize():
     data = request.get_json()
     smiles = data.get("smiles", "")
@@ -104,7 +104,7 @@ def optimize():
     })
 
 # ✅ Generate Report
-@app.route("/report", methods=["POST"])
+@app.route("/generate_report", methods=["POST"])
 def report():
     data = request.get_json()
     smiles = data.get("smiles", "")
