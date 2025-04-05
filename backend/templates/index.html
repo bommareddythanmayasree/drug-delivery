@@ -3,49 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI-Powered Drug Discovery</title>
+    <title>DrugXcelerate AI - Drug Discovery</title>
+    
+    <!-- Style -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- FontAwesome for Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" defer></script>
 </head>
-<script src="script.js"></script>
 
 <body>
-    <h1>🔬 DrugXcelerate - AI-Powered Drug Discovery</h1>
+    <div class="container">
+        <h1>🚀 DrugXcelerate - AI-Powered Drug Discovery</h1>
 
-    <div class="tabs">
-        <button onclick="showTab('generate')">Generate Molecule</button>
-        <button onclick="showTab('analyze')">Molecular Analysis & Efficacy Prediction</button>
-        <button onclick="showTab('optimize')">Optimization & Validation</button>
-        <button onclick="showTab('report')">Generate Report</button>
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('generate')">
+                <i class="fas fa-dna"></i> Generate Molecule
+            </button>
+            <button class="tab-btn" onclick="showTab('analyze')">
+                <i class="fas fa-flask"></i> Molecular Analysis & Efficacy Prediction
+            </button>
+            <button class="tab-btn" onclick="showTab('optimize')">
+                <i class="fas fa-microscope"></i> Optimization & Validation
+            </button>
+            <button class="tab-btn" onclick="showTab('report')">
+                <i class="fas fa-file-alt"></i> Generate Report
+            </button>
+        </div>
+
+        <!-- Tab: Generate -->
+        <div id="generate" class="tab-content" style="display: block;">
+            <h2><i class="fas fa-dna"></i> Generate Molecule</h2>
+            <input type="text" id="disease_target" placeholder="Enter Disease Target">
+            <button onclick="generateMolecule()">Generate</button>
+            <p id="generated_molecule"></p>
+        </div>
+
+        <!-- Tab: Analyze -->
+        <div id="analyze" class="tab-content" style="display: none;">
+            <h2><i class="fas fa-flask"></i> Molecular Analysis & Efficacy Prediction</h2>
+            <input type="text" id="molecule_input" placeholder="Enter Molecule SMILES">
+            <button onclick="analyzeMolecule()">Analyze</button>
+            <p id="analysis_results"></p>
+        </div>
+
+        <!-- Tab: Optimize -->
+        <div id="optimize" class="tab-content" style="display: none;">
+            <h2><i class="fas fa-microscope"></i> Optimization & Validation</h2>
+            <input type="text" id="optimize_input" placeholder="Enter Molecule SMILES">
+            <button onclick="optimizeMolecule()">Optimize</button>
+            <p id="optimized_molecule"></p>
+        </div>
+
+        <!-- Tab: Report -->
+        <div id="report" class="tab-content" style="display: none;">
+            <h2><i class="fas fa-file-alt"></i> Generate Report</h2>
+            <input type="text" id="report_molecule" placeholder="Enter Molecule">
+            <button onclick="generateReport()">Generate Report</button>
+            <p id="report_message"></p>
+        </div>
     </div>
 
-    <div id="generate" class="tab-content">
-        <h2>🧪 Generate Molecule</h2>
-        <input type="text" id="disease_target" placeholder="Enter Disease Target">
-        <button onclick="generateMolecule()">Generate</button>
-        <p id="generated_molecule"></p>
-    </div>
-
-    <div id="analyze" class="tab-content" style="display:none;">
-        <h2>🔬 Molecular Analysis & Efficacy Prediction</h2>
-        <input type="text" id="molecule_input" placeholder="Enter Molecule SMILES">
-        <button onclick="analyzeMolecule()">Analyze</button>
-        <p id="analysis_results"></p>
-    </div>
-
-    <div id="optimize" class="tab-content" style="display:none;">
-        <h2>🛠 Optimization & Validation</h2>
-        <input type="text" id="optimize_input" placeholder="Enter Molecule SMILES">
-        <button onclick="optimizeMolecule()">Optimize</button>
-        <p id="optimized_molecule"></p>
-    </div>
-
-    <div id="report" class="tab-content" style="display:none;">
-        <h2>📜 Generate Report</h2>
-        <input type="text" id="report_molecule" placeholder="Enter Molecule">
-        <button onclick="generateReport()">Generate Report</button>
-        <p id="report_message"></p>
-    </div>
-
+    <!-- JavaScript -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
