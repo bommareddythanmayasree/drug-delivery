@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const API_BASE_URL = "https://drug-delivery.onrender.com";
+    const API_BASE_URL = "https://drug-delivery-1.onrender.com";
 
     // Tab logic
     const tabs = document.querySelectorAll(".tab-btn");
