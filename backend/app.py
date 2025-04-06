@@ -4,8 +4,10 @@ import numpy as np
 import os
 from rdkit import Chem
 from rdkit.Chem import Descriptors
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 #  Load AI Model with Error Handling
 model_path = os.path.join(os.getcwd(), "drug_discovery_model.joblib")
@@ -79,7 +81,7 @@ def generate_molecule():
         return jsonify({"error": str(e)}), 500
 #  Analyze Molecular Properties based on disease_target
 @app.route("/analyze_molecule", methods=["POST"])
-def analyze():
+def analyze_molecule():
     data = request.get_json()
     disease_target = data.get("disease_target", "")
 
@@ -122,7 +124,7 @@ def analyze():
 
 #  Optimize Molecule Properties
 @app.route("/optimize_molecule", methods=["POST"])
-def optimize():
+def optimize_molecule():
     data = request.get_json()
     smiles = data.get("molecule", "")
 
@@ -148,7 +150,7 @@ def optimize():
 
 #  Generate Report
 @app.route("/generate_report", methods=["POST"])
-def report():
+def generate_report():
     data = request.get_json()
     smiles = data.get("smiles", "")
 
