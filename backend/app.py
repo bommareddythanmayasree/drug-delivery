@@ -2,8 +2,6 @@ from flask import Flask, request, jsonify, render_template
 import joblib
 import numpy as np
 import os
-from rdkit import Chem
-from rdkit.Chem import Descriptors
 from flask_cors import CORS
 
 app = Flask(__name__)
