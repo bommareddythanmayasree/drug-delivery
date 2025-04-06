@@ -7,17 +7,16 @@ document.addEventListener("DOMContentLoaded", function () {
         tab.addEventListener("click", () => {
             document.querySelectorAll(".tab-content").forEach(tab => tab.style.display = "none");
             document.getElementById(tab.dataset.tab).style.display = "block";
-
             tabs.forEach(btn => btn.classList.remove("active"));
             tab.classList.add("active");
         });
     });
 
-    // Helper function for API calls
+    // Helper for API calls
     async function fetchAPI(endpoint, method, body = null) {
         try {
             const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
-                method: method,
+                method,
                 headers: { "Content-Type": "application/json" },
                 body: body ? JSON.stringify(body) : null
             });
@@ -42,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const data = await fetchAPI("generate_molecule", "POST", { disease_target: target });
         output.innerHTML = data.error
             ? `<span style="color:red;">Error: ${data.error}</span>`
-            : `Generated Molecule: <strong>${data.molecule}</strong>`;
+            : `Generated Molecule: <strong>${data.smiles}</strong>`;
     });
 
     // ANALYZE MOLECULE
@@ -55,10 +54,15 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const data = await fetchAPI("analyze_molecule", "POST", { molecule: smiles });
+        // Use 'disease_target' as expected by backend
+        const data = await fetchAPI("analyze_molecule", "POST", { disease_target: smiles });
         output.innerHTML = data.error
             ? `<span style="color:red;">Error: ${data.error}</span>`
-            : `Drug Likelihood: <strong>${data.likelihood}</strong>`;
+            : `
+                <strong>SMILES:</strong> ${data.smiles}<br>
+                <strong>Efficacy:</strong> ${data.likelihood}<br>
+                <pre>${JSON.stringify(data.details, null, 2)}</pre>
+            `;
     });
 
     // OPTIMIZE MOLECULE
@@ -74,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const data = await fetchAPI("optimize_molecule", "POST", { molecule: input });
         output.innerHTML = data.error
             ? `<span style="color:red;">Error: ${data.error}</span>`
-            : `Optimized Molecule: <strong>${data.optimized}</strong>`;
+            : `Optimized Molecule: <strong>${data.optimized}</strong> <br>Score: ${data.score}`;
     });
 
     // GENERATE REPORT
@@ -87,10 +91,11 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const data = await fetchAPI("generate_report", "POST", { molecule: input });
+        // Use 'smiles' as expected by backend
+        const data = await fetchAPI("generate_report", "POST", { smiles: input });
         output.innerHTML = data.error
             ? `<span style="color:red;">Error: ${data.error}</span>`
-            : `Report Generated: <pre>${data.report}</pre>`;
+            : `<strong>Report Generated:</strong><pre>${data.report}</pre>`;
     });
 
     // Default tab
