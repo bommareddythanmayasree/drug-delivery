@@ -15,15 +15,20 @@ document.addEventListener("DOMContentLoaded", function () {
     // Helper for API calls
     async function fetchAPI(endpoint, method, body = null) {
         try {
+            console.log("Sending request to:", `${API_BASE_URL}/${endpoint}`);
             const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
                 method,
-                headers: { "Content-Type": "application/json" },
+                mode: 'cors', // Ensures cross-origin requests work properly
+                headers: {
+                    "Content-Type": "application/json"
+                },
                 body: body ? JSON.stringify(body) : null
             });
 
             if (!response.ok) throw new Error(`Server Error: ${response.status} ${response.statusText}`);
             return await response.json();
         } catch (error) {
+            console.error("Fetch error:", error); // Debug log
             return { error: error.message };
         }
     }
@@ -54,7 +59,6 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // Use 'disease_target' as expected by backend
         const data = await fetchAPI("analyze_molecule", "POST", { disease_target: smiles });
         output.innerHTML = data.error
             ? `<span style="color:red;">Error: ${data.error}</span>`
@@ -88,16 +92,4 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!input) {
             output.innerHTML = `<span style="color:red;">Please enter a molecule to generate report.</span>`;
-            return;
-        }
-
-        // Use 'smiles' as expected by backend
-        const data = await fetchAPI("generate_report", "POST", { smiles: input });
-        output.innerHTML = data.error
-            ? `<span style="color:red;">Error: ${data.error}</span>`
-            : `<strong>Report Generated:</strong><pre>${data.report}</pre>`;
-    });
-
-    // Default tab
-    document.querySelector('[data-tab="generate"]').click();
-});
+            return
