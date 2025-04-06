@@ -7,16 +7,16 @@ from rdkit.Chem import Descriptors
 
 app = Flask(__name__)
 
-# ✅ Load AI Model with Error Handling
+#  Load AI Model with Error Handling
 model_path = os.path.join(os.getcwd(), "drug_discovery_model.joblib")
 
 if not os.path.exists(model_path):
     raise FileNotFoundError(f"Model file not found at {model_path}. Ensure the model exists in the 'model/' folder.")
 
 model = joblib.load(model_path)
-print("✅ Model loaded successfully!")
+print(" Model loaded successfully!")
 
-# ✅ Function to analyze a molecule
+#  Function to analyze a molecule
 def analyze_molecule(smiles):
     if not smiles:
         return {"error": "No SMILES notation provided."}
@@ -47,39 +47,88 @@ def analyze_molecule(smiles):
         "Predicted Efficacy Score": efficacy_pred
     }
 
-# ✅ Home Route
+#  Home Route
 @app.route("/")
 def home():
     return render_template("index.html")
 
-# ✅ Generate Molecule (Placeholder for a real generator)
+@app.route("/")
+def home():
+    return " Drug Molecule Generator API is running!"
+
 @app.route("/generate_molecule", methods=["POST"])
 def generate_molecule():
-    data = request.get_json()
-    disease_target = data.get("disease_target", "default_disease")
+    try:
+        if model is None:
+            return jsonify({"error": "Model not loaded"}), 500
 
-    # Generate a simple carbon chain molecule (Placeholder for real AI molecule generation)
-    mol = Chem.RWMol()
-    for _ in range(10):
-        mol.AddAtom(Chem.Atom("C"))
-    smiles = Chem.MolToSmiles(mol)
+        data = request.get_json()
+        disease_target = data.get("disease_target", "")
 
-    return jsonify({"smiles": smiles, "message": f"Generated molecule for {disease_target}."})
+        if not disease_target:
+            return jsonify({"error": "Disease target is missing"}), 400
 
-# ✅ Analyze Molecular Properties
+        # Predict elements using the model
+        elements = model.predict([disease_target])[0]  # e.g., ['C', 'H', 'N', 'O']
+
+        # Join elements to simulate a SMILES string
+        smiles = "".join(elements)
+
+        return jsonify({
+            "smiles": smiles,
+            "message": f"Generated molecule for '{disease_target}'"
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+#  Analyze Molecular Properties based on disease_target
 @app.route("/analyze_molecule", methods=["POST"])
 def analyze():
     data = request.get_json()
-    smiles = data.get("smiles", "")
+    disease_target = data.get("disease_target", "")
 
-    result = analyze_molecule(smiles)
-    return jsonify(result)
+    if not disease_target:
+        return jsonify({"error": "No disease target provided."})
 
-# ✅ Optimize Molecule Properties
+    try:
+        # Step 1: Get elements from model
+        elements = model.predict([disease_target])[0]
+
+        # Step 2: Build molecule and convert to SMILES
+        mol = Chem.RWMol()
+        atom_indices = []
+
+        for element in elements:
+            atom_idx = mol.AddAtom(Chem.Atom(element))
+            atom_indices.append(atom_idx)
+
+        for i in range(len(atom_indices) - 1):
+            mol.AddBond(atom_indices[i], atom_indices[i + 1], Chem.BondType.SINGLE)
+
+        smiles = Chem.MolToSmiles(mol)
+
+        # Step 3: Analyze molecule
+        result = analyze_molecule(smiles)
+        if "error" in result:
+            return jsonify({"error": result["error"]})
+
+        # Step 4: Return results
+        return jsonify({
+            "smiles": smiles,
+            "likelihood": result["Predicted Efficacy Score"],
+            "details": result
+        })
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to analyze molecule: {str(e)}"}), 500
+
+
+
+#  Optimize Molecule Properties
 @app.route("/optimize_molecule", methods=["POST"])
 def optimize():
     data = request.get_json()
-    smiles = data.get("smiles", "")
+    smiles = data.get("molecule", "")
 
     if not smiles:
         return jsonify({"error": "No SMILES provided."})
@@ -88,9 +137,8 @@ def optimize():
     if not mol:
         return jsonify({"error": "Invalid molecule."})
 
-    # Example Optimization (Modify this logic)
-    molwt = Descriptors.MolWt(mol) * 1.02  # Example change
-    logp = Descriptors.MolLogP(mol) * 1.1  # Example change
+    molwt = Descriptors.MolWt(mol) * 1.02
+    logp = Descriptors.MolLogP(mol) * 1.1
 
     try:
         efficacy_pred = model.predict([[molwt, 50, logp, 1, 1]])[0]
@@ -98,12 +146,11 @@ def optimize():
         return jsonify({"error": f"Optimization failed: {str(e)}"})
 
     return jsonify({
-        "optimized_smiles": smiles,
-        "optimized_eff": efficacy_pred,
-        "message": "Optimization completed successfully."
+        "optimized": smiles,
+        "score": efficacy_pred
     })
 
-# ✅ Generate Report
+#  Generate Report
 @app.route("/generate_report", methods=["POST"])
 def report():
     data = request.get_json()
@@ -130,6 +177,6 @@ def report():
 
     return jsonify({"report": report_text})
 
-# ✅ Run Flask App
+#  Run Flask App
 if __name__ == "__main__":
     app.run(debug=True)
