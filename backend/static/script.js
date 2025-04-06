@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const resultDiv = document.getElementById("result");
 
     // API Base URL
-    const API_BASE_URL = "http://127.0.0.1:5000";  // Ensure Flask is running locally
+    const API_BASE_URL = "https://drug-delivery.onrender.com";  // Ensure Flask is running locally
 
     // Generate Molecule
     generateBtn.addEventListener("click", async function () {
