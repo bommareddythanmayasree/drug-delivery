@@ -52,10 +52,6 @@ def analyze_molecule(smiles):
 def home():
     return render_template("index.html")
 
-@app.route("/")
-def home():
-    return " Drug Molecule Generator API is running!"
-
 @app.route("/generate_molecule", methods=["POST"])
 def generate_molecule():
     try:
